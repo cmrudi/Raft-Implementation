@@ -16,7 +16,7 @@ def index(prime_nth):
 def index(name):
     return '<b>Hellosss %s!</b>' % name
 
-@route('/api/join_api/:ip_addr')
+@route('/api/join_system/:ip_addr')
 def index(name):
     return '<b>Hello %s!</b>' % ip_addr
 
@@ -35,7 +35,7 @@ def initialize():
     if (str(localhost) == str(leader_host)):
         print('Initiate Leader')
     else:
-		url = 'https://'+ leader_host +'/api/join_system/'+localhost
+		url = 'http://'+ leader_host +'/api/join_system/'+localhost
 		print(url)
 		response = requests.get(url)
 		print(response);
