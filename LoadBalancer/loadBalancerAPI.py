@@ -25,13 +25,27 @@ def index(prime_nth):
 def index(name):
     return '<b>Hellosss %s!</b>' % name
 
+#API to join the system
 @route('/api/join_system/:ip_addr')
 def index(ip_addr):
+	server_list = ''
     global array_server
     if not(search(array_server,ip_addr)):
         array_server.append(ip_addr)
+        
+        for addr in array_server:
+			server_list += addr + '_'
+			 
+    return server_list
+    
+@route('/api/get_server/:ip_addr')
+def index():
+    server_list = ''
+    for addr in array_server:
+        request.get();
     return leader_host
-    print('cekkk')
+ 
+ 
 
 
 
@@ -51,7 +65,8 @@ def initialize():
 		url = 'http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost
 		print(url)
 		response = requests.get(url)
-		print(response);
+		print(response.text);
+		array_server = response
 		array_server.append(response)
 
 if __name__ == '__main__':
