@@ -4,6 +4,13 @@ import sys
 import os
 
 
+def search(array,ip):
+    for obj in array:
+        if (obj==ip):
+            return True
+
+    return False
+
 localhost = ''
 leader_host = ''
 local_port = '5000'
@@ -21,7 +28,9 @@ def index(name):
 @route('/api/join_system/:ip_addr')
 def index(ip_addr):
     global array_server
-    array_server.append(ip_addr)
+    if not(search(array_server,ip_addr)):
+        array_server.append(ip_addr)
+    print len(array_server)
     return '<b>Hello %s!</b>' % ip_addr
 
 
