@@ -7,6 +7,7 @@ import os
 localhost = ''
 leader_host = ''
 local_port = '5000'
+array_server = []
 
 @route('/api/search_prime/:prime_nth')
 def index(prime_nth):
@@ -19,7 +20,10 @@ def index(name):
 
 @route('/api/join_system/:ip_addr')
 def index(ip_addr):
+    global array_server
+    array_server.append(ip_addr)
     return '<b>Hello %s!</b>' % ip_addr
+
 
 
 
