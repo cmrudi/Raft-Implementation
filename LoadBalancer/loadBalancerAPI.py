@@ -3,6 +3,16 @@ import requests
 import sys
 import os
 
+# variables
+
+localhost = ''
+leader_host = ''
+local_port = '5000'
+array_server = []
+
+
+
+# functions
 
 def search(array,ip):
     for obj in array:
@@ -11,10 +21,36 @@ def search(array,ip):
 
     return False
 
-localhost = ''
-leader_host = ''
-local_port = '5000'
-array_server = []
+def initialize():
+    global localhost
+    global leader_host
+    shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
+    localhost = shell_response.read()
+    localhost = localhost[:-1]
+    leader_host = sys.argv[1]  
+    if (str(localhost) == str(leader_host)):
+        print('Initiate Leader')
+        array_server.append(localhost)
+    else:
+        url = 'http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost
+        print(url)
+        response = requests.get(url)
+        print(response.text);
+
+        # put response in an array_search
+        address = response.text # ip addresses
+        panjang = len(address)
+        i = 0
+        while (i<panjang):
+            ip = ''
+            c = address[i]
+            if not(c=='_'):
+                ip += c
+            else: array_server.append(ip)
+            i = i+1
+
+
+# route
 
 @route('/api/search_prime/:prime_nth')
 def index(prime_nth):
@@ -37,7 +73,7 @@ def index(ip_addr):
 			server_list += addr + '_'
 			if (addr != leader_host):
 				response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
-				print(addr + '-'response )
+				print(addr + '-' +response )
     return server_list
 
 #API to get new server that join the system    
@@ -46,29 +82,10 @@ def index(ip_addr):
     array_server.append(ip_addr)
     return 'success'
  
- 
 
 
 
-
-
-def initialize():
-    global localhost
-    global leader_host
-    shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
-    localhost = shell_response.read()
-    localhost = localhost[:-1]
-    leader_host = sys.argv[1]  
-    if (str(localhost) == str(leader_host)):
-        print('Initiate Leader')
-        array_server.append(localhost)
-    else:
-		url = 'http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost
-		print(url)
-		response = requests.get(url)
-		print(response.text);
-		array_server = response
-		array_server.append(response)
+# main
 
 if __name__ == '__main__':
     initialize()
