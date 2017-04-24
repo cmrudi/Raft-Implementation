@@ -24,6 +24,8 @@ def index(name):
 
 
 def initialize():
+	
+	
     global localhost
     global leader_host
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
@@ -33,9 +35,11 @@ def initialize():
     if (str(localhost) == str(leader_host)):
         print('Initiate Leader')
     else:
-		response = requests.get('https://'+ leader_host +'/api/join_system/'+localhost)
+		url = 'https://'+ leader_host +'/api/join_system/'+localhost
+		print(url)
+		response = requests.get(url)
 		print(response);
 
 if __name__ == '__main__':
     initialize()
-    run(host='localhost', port=5000)
+    run(host=localhost, port=5000)
