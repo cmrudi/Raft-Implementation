@@ -41,13 +41,16 @@ def initialize():
         address = response.text # ip addresses
         panjang = len(address)
         i = 0
+        ip = ''
         while (i<panjang):
-            ip = ''
             c = address[i]
             if not(c=='_'):
                 ip += c
-            else: array_server.append(ip)
+            else:
+				array_server.append(ip)
+				ip = ''
             i = i+1
+        print(array_server[0])
 
 
 # route
@@ -71,9 +74,9 @@ def index(ip_addr):
         
         for addr in array_server:
 			server_list += addr + '_'
-			if (addr != leader_host):
+			if (addr != leader_host and addr != ip_addr):
 				response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
-				print(addr + '-' +response )
+				print(addr + '- success' )
     return server_list
 
 #API to get new server that join the system    
