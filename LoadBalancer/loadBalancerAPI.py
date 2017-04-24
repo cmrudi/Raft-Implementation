@@ -73,7 +73,7 @@ def index(ip_addr):
 			server_list += addr + '_'
 			if (addr != leader_host):
 				response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
-				print(addr + '-' +response )
+				print(addr + '- '), response
     return server_list
 
 #API to get new server that join the system    
