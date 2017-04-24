@@ -38,8 +38,6 @@ def index(ip_addr):
 
 
 def initialize():
-	
-	
     global localhost
     global leader_host
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
@@ -48,6 +46,7 @@ def initialize():
     leader_host = sys.argv[1]  
     if (str(localhost) == str(leader_host)):
         print('Initiate Leader')
+        array_server.append(localhost)
     else:
 		url = 'http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost
 		print(url)
