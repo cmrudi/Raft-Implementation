@@ -6,6 +6,7 @@ import os
 
 localhost = ''
 leader_host = ''
+local_port = '5000'
 
 @route('/api/search_prime/:prime_nth')
 def index(prime_nth):
@@ -17,7 +18,7 @@ def index(name):
     return '<b>Hellosss %s!</b>' % name
 
 @route('/api/join_system/:ip_addr')
-def index(name):
+def index(ip_addr):
     return '<b>Hello %s!</b>' % ip_addr
 
 
@@ -35,11 +36,11 @@ def initialize():
     if (str(localhost) == str(leader_host)):
         print('Initiate Leader')
     else:
-		url = 'http://'+ leader_host +'/api/join_system/'+localhost
+		url = 'http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost
 		print(url)
 		response = requests.get(url)
 		print(response);
 
 if __name__ == '__main__':
     initialize()
-    run(host=localhost, port=5000)
+    run(host=localhost, port=local_port)
