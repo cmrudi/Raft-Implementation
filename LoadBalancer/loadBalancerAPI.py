@@ -28,22 +28,23 @@ def index(name):
 #API to join the system
 @route('/api/join_system/:ip_addr')
 def index(ip_addr):
-	server_list = ''
+    server_list = ''
     global array_server
     if not(search(array_server,ip_addr)):
         array_server.append(ip_addr)
         
         for addr in array_server:
 			server_list += addr + '_'
-			 
+			if (addr != leader_host):
+				response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
+				print(addr + '-'response )
     return server_list
-    
-@route('/api/get_server/:ip_addr')
-def index():
-    server_list = ''
-    for addr in array_server:
-        request.get();
-    return leader_host
+
+#API to get new server that join the system    
+@route('/api/get_new_server/:ip_addr')
+def index(ip_addr):
+    array_server.append(ip_addr)
+    return 'success'
  
  
 
