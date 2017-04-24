@@ -30,8 +30,8 @@ def index(ip_addr):
     global array_server
     if not(search(array_server,ip_addr)):
         array_server.append(ip_addr)
-    print len(array_server)
-    return '<b>Hello %s!</b>' % ip_addr
+    return leader_host
+    print('cekkk')
 
 
 
@@ -53,6 +53,7 @@ def initialize():
 		print(url)
 		response = requests.get(url)
 		print(response);
+		array_server.append(response)
 
 if __name__ == '__main__':
     initialize()
