@@ -1,61 +1,64 @@
 class Log_element:
-    def __init__(self, num, com):
-        self.num = num # number
-        self.com = com # commited
+	def __init__(self, num, com):
+		self.num = num # number
+		self.com = com # commited
+class Log:
+	def __init__(self):
+		self.log_elem = []
+	
+	def print_log(self):
+	# print everything in the log
+		for obj in self.log_elem:
+			print obj.num, obj.com
 
-def print_log(log):
-# print everything in the log
-	for obj in log:
-		print obj.num, obj.com
+	def add(self,new_number):
+	# adding a number request
+		self.log_elem.append(Log_element(new_number,False))
 
-def add(log,new_number):
-# adding a number request
-	log.append(Log_element(new_number,False))
+	def commit(self):
+	# commit the last value
+		self.log_elem[len(self.log_elem)-1].com = True
 
-def commit(log):
-# commit the last value
-	log[len(log)-1].com = True
+	def commit_num(self, num_request):
+	# commit the latest that has num element numRequest
+		i = len(self.log_elem)-1
+		while (i>=0):
+			if ((self.log_elem[i].num == num_request) and (self.log_elem[i].com == False)):
+				self.log_elem[i].com = True
+				break
+			else:
+				i = i-1
 
-def commit_num(log, num_request):
-# commit the latest that has num element numRequest
-	i = len(log)-1
-	while (i>=0):
-		if ((log[i].num == num_request) and (log[i].com == False)):
-			log[i].com = True
-			break
-		else:
-			i = i-1
+	def uncommit(self):
+	# uncommit the last value
+		self.log_elem[len(self.log_elem)-1].com = False
 
-def uncommit(log):
-# uncommit the last value
-	log[len(log)-1].com = False
+	def uncommit_num(self, num_request):
+	# uncommit the latest that has num element numRequest
+		i = len(self.log_elem)-1
+		while (i>=0):
+			if ((self.log_elem[i].num == num_request) and (self.log_elem[i].com == True)):
+				self.log_elem[i].com = False
+				break
+			else:
+				i = i-1
 
-def uncommit_num(log, num_request):
-# uncommit the latest that has num element numRequest
-	i = len(log)-1
-	while (i>=0):
-		if ((log[i].num == num_request) and (log[i].com == True)):
-			log[i].com = False
-			break
-		else:
-			i = i-1
+	def check_number(self, num_request):
+	# check if there exist the num_request
+		for obj in self.log_elem:
+			if obj.num==num_request:
+				return True
 
-def check_number(log, num_request):
-# check if there exist the num_request
-	for obj in log:
-		if obj.num==num_request:
-			return True
+		return False
 
-	return False
-
-def get_commit(log, num_request):
-# get the commit element of the latest num_request
-	i = len(log)-1
-	while (i>=0):
-		if (log[i].num == num_request):
-			return log[i].com
-		else:
-			i = i-1
+	def get_commit(self, num_request):
+	# get the commit element of the latest num_request
+		i = len(self.log_elem)-1
+		while (i>=0):
+			if (self.log_elem[i].num == num_request):
+				return self.log_elem[i].com
+			else:
+				i = i-1
 
 
 
