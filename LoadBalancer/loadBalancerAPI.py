@@ -9,6 +9,7 @@ localhost = ''
 leader_host = ''
 local_port = '5000'
 array_server = []
+cpu_availability = 0
 
 
 
@@ -34,7 +35,9 @@ def initialize():
     localhost = localhost[:-1]
     leader_host = sys.argv[1]  
     if (str(localhost) == str(leader_host)):
+        print
         print('Initiate Leader')
+        print
         array_server.append(localhost)
     else:
         response = get_request('http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost)
@@ -76,7 +79,7 @@ def index(prime_nth):
 def index(name):
     return '<b>Hellosss %s!</b>' % name
 
-#API to join the system
+#API to join the system --Already Tested
 @route('/api/join_system/:ip_addr')
 def index(ip_addr):
     server_list = ''
@@ -89,6 +92,10 @@ def index(ip_addr):
 			if (addr != leader_host and addr != ip_addr):
 				response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
 				print(addr + '- '), response
+	
+    print
+    print "Current Server in System : ",array_server
+    print
     return server_list
 
 #API to get new server that join the system    
@@ -96,8 +103,16 @@ def index(ip_addr):
 def index(ip_addr):
     array_server.append(ip_addr)
     return 'success'
- 
-
+    
+#API to get internal cpu availability percentage --Already Tested
+@route('/api/internal_availability/:percentage')
+def index(percentage):
+    global cpu_availability
+    cpu_availability = percentage
+    print
+    print "Update CPU Availability to ",cpu_availability,"%"
+    print
+    return 'success'
 
 
 # main

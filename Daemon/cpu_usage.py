@@ -8,8 +8,13 @@ localhost = shell_response.read()
 localhost = localhost[:-1]
 
 while 1:
-    avail_mem = str(psutil.virtual_memory().available*100/psutil.virtual_memory().total);
-    print("Memory= "+avail_mem+ " %")
     time.sleep(5)
-    requests.get('http://'+localhost+':'+local_port+'/api/internal_availablity/'+str(avail_mem))
+    avail_mem = str(psutil.virtual_memory().available*100/psutil.virtual_memory().total);
+    print
+    print
+    print "Memory= "+avail_mem+ " %"
+    url = 'http://'+localhost+':'+local_port+'/api/internal_availability/'+str(avail_mem)
+    print "GET Request to ", url
+    response = requests.get(url)
+    print "Response -> Status: ", response.status_code,' Text: ', response.text
 

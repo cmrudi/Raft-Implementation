@@ -63,10 +63,11 @@ class Log:
 
 
 # main (debuging)
-log = []
+cpu_log = Log()
+cpu_log.add(5)
+cpu_log.commit()
 
-add(log,5)
-commit(log)
+"""
 add(log,30)
 add(log,38)
 add(log,18)
@@ -101,3 +102,4 @@ x = 17
 y = 25
 z = 0
 print z
+"""
