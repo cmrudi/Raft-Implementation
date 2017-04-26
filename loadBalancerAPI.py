@@ -37,13 +37,13 @@ def heart_beat():
                         max_availability_address = addr
             #Enter address which has max availability to local log
             print
-            print "Push new log address= "+max_availability_address+"  term= " + term
+            print "Push new log address= "+max_availability_address+"  term= " + str(term)
             print
             main_log.add(max_availability_address,term)
             
             #Spread log to follower
             for addr in array_server:
-				response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+term)
+				response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
                        						
 
 def increment_time():
@@ -178,7 +178,7 @@ def index():
 @route('/api/spread_log/:address/:term')
 def index(address, term):
     print
-    print "Push new log address= "+max_availability_address+"  term= " + term
+    print "Push new log address= "+address+"  term= " + term
     print
     main_log.add(max_availability_address,term)
     return 'success'
