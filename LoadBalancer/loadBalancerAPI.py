@@ -22,6 +22,11 @@ def search(array,ip):
     return False
 
 def initialize():
+	
+    if (len(sys.argv) != 2) :
+		print "Plese use following command: Python loadBalancerAPI <current_leader_ip_address>"
+		sys.exit()
+	
     global localhost
     global leader_host
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
@@ -32,10 +37,7 @@ def initialize():
         print('Initiate Leader')
         array_server.append(localhost)
     else:
-        url = 'http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost
-        print(url)
-        response = requests.get(url)
-        print(response.text);
+        response = get_request('http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost)
 
         # put response in an array_search
         address = response.text # ip addresses
@@ -50,8 +52,18 @@ def initialize():
 				array_server.append(ip)
 				ip = ''
             i = i+1
-        print(array_server[0])
+        print
+        print "Current Server in System : ",array_server
+        print
 
+def get_request(url):
+    print
+    print "GET Request to ", url
+    response = requests.get(url)
+    print "Response -> Status: ", response.status_code,' Text: ', response.text
+    print
+    return response
+    
 
 # route
 
