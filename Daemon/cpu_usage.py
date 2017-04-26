@@ -1,11 +1,17 @@
-import psutil, time, requests, os
+import psutil, time, requests, os, sys
 
 
-local_port = '5000'
+local_port = ''
 
 shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
 localhost = shell_response.read()
 localhost = localhost[:-1]
+
+if (len(sys.argv) != 2) :
+    print "Plese use following command: Python cpu_usage.py <your_port>"
+    print "example python cpu_usage.py 5000"
+    sys.exit()
+local_port = sys.argv[1]
 
 while 1:
     time.sleep(5)

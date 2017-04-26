@@ -16,13 +16,13 @@ timecount = 0
 def heart_beat():
     global array_server
     while len(array_server) <= 1:
-        print "heart beat"
+        print "Waiting for follower"
         time.sleep(1)
         while len(array_server) > 1:
             time.sleep(5)
             for addr in array_server:
                 if (addr != localhost) :
-                    response = get_request('http://'+addr+':'+local_port+'/api/heart_beat')
+                    response = get_request('http://'+addr+'/api/heart_beat')
 
 def increment_time():
     global timecount
@@ -51,9 +51,8 @@ def initialize():
     global local_port
     global leader_addr
     global local_addr
-    global time
+    global timecount
 
-    thread.start_new_thread(increment_time, () )
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
     localhost = shell_response.read()
     localhost = localhost[:-1]
@@ -67,6 +66,7 @@ def initialize():
         array_server.append(local_addr)
         thread.start_new_thread(heart_beat, () )
     else:
+        thread.start_new_thread(increment_time, () )
         response = get_request('http://'+ leader_addr +'/api/join_system/'+local_addr)
 
         # put response in an array_search
