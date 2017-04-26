@@ -29,9 +29,8 @@ def heart_beat():
             max_availability_number = cpu_availability
             max_availability_address = local_addr
             for addr in array_server:
-                if (addr != localhost) :
+                if (addr != local_addr) :
                     response = get_request('http://'+addr+'/api/heart_beat')
-                    print "Follower response : "+response.text 
                     if (max_availability_number < int(response.text)):
                         max_availability_number = int(response.text)
                         max_availability_address = addr
@@ -44,16 +43,18 @@ def heart_beat():
             add_log_success = 1
             #Spread log to follower
             for addr in array_server:
-                response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
-                if (response.status_code == '200'):
-                    add_log_success += 1
+                if (addr != local_addr) :
+                    response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
+                    if (response.status_code == '200'):
+                        add_log_success += 1
             
             if (add_log_success > len(array_server) / 2 + 1) : 
                 #Commit to internal log
                 main_log.commit_ip_term(max_availability_address,term)
                 #Commit log to follower
                 for addr in array_server:
-                    response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term))
+                    if (addr != local_addr) :
+                        response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term))
                                                
 
 def increment_time():
