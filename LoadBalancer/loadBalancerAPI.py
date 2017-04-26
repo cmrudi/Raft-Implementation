@@ -1,7 +1,5 @@
 from bottle import route, run, request
-import requests
-import sys
-import os
+import requests, sys, os, thread, time
 
 # variables
 
@@ -12,9 +10,16 @@ array_server = []
 cpu_availability = 0
 
 
+#thread
+def heart_beat():
+    global array_server
+    time.sleep(5)
+    while len(array_server) > 1:
+        time.sleep(5)
+        for addr in array_server:
+            response = get_request('http://'+addr+':'+local_port+'/api/heart_beat')
 
 # functions
-
 def search(array,ip):
     for obj in array:
         if (obj==ip):
@@ -39,6 +44,7 @@ def initialize():
         print('Initiate Leader')
         print
         array_server.append(localhost)
+        thread.start_new_thread(heart_beat, () )
     else:
         response = get_request('http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost)
 
@@ -113,6 +119,15 @@ def index(percentage):
     print "Update CPU Availability to ",cpu_availability,"%"
     print
     return 'success'
+    
+#API to get heartbeat from leader and send cpu availability
+@route('/api/heart_beat')
+def index(percentage):
+    global cpu_availability
+    print
+    print "Get Heartbeat from leader, sending availability ", cpu_availability
+    print
+    return cpu_availability
 
 
 # main
