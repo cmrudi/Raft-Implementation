@@ -41,10 +41,20 @@ def heart_beat():
             print
             main_log.add(max_availability_address,term)
             
+            add_log_success = 1
             #Spread log to follower
             for addr in array_server:
-				response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
-                       						
+                response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
+                if (response.status_code == '200'):
+                    add_log_success += 1
+            
+            if (add_log_success > len(array_server) / 2 + 1) : 
+                #Commit to internal log
+                main_log.commit_ip_term(max_availability_address,term)
+                #Commit log to follower
+                for addr in array_server:
+                    response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term))
+                                               
 
 def increment_time():
     global timecount
@@ -63,12 +73,12 @@ def search(array,ip):
     return False
 
 def initialize():
-	
+    
     if (len(sys.argv) != 3) :
-		print "Plese use following command: Python loadBalancerAPI <current_leader_address> <your_port>"
-		print "example python loadBalancerAPI.py 192.168.199.1:5000 4000"
-		sys.exit()
-	
+        print "Plese use following command: Python loadBalancerAPI <current_leader_address> <your_port>"
+        print "example python loadBalancerAPI.py 192.168.199.1:5000 4000"
+        sys.exit()
+    
     global localhost
     global local_port
     global leader_addr
@@ -101,8 +111,8 @@ def initialize():
             if not(c=='_'):
                 ip += c
             else:
-				array_server.append(ip)
-				ip = ''
+                array_server.append(ip)
+                ip = ''
             i = i+1
         print
         print "Current Server in System : ",array_server
@@ -137,11 +147,11 @@ def index(ip_addr):
         array_server.append(ip_addr)
         
         for addr in array_server:
-			server_list += addr + '_'
-			if (addr != leader_addr and addr != ip_addr):
-				response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
-				print(addr + '- '), response
-	
+            server_list += addr + '_'
+            if (addr != leader_addr and addr != ip_addr):
+                response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
+                print(addr + '- '), response
+    
     print
     print "Current Server in System : ",array_server
     print
@@ -182,6 +192,16 @@ def index(address, term):
     print
     main_log.add(address,term)
     return 'success'
+    
+#API for commit log from leader
+@route('/api/commit_log/:address/:term')
+def index(address, term):
+    print
+    print "Commit log address= "+address+"  term= " + term
+    print
+    main_log.commit_ip_term(address,term)
+    return 'success'
+
 
 
 # main
