@@ -6,8 +6,10 @@ from bottle import route, run, request
 from bottle import get, post, request # or route
 
 
+
+
 while 1:
-       print("Memory= "+str(psutil.virtual_memory().available))
+       print("Memory= "+str(psutil.virtual_memory().available*100/psutil.virtual_memory().total)+ " %")
        time.sleep(1)
 
 # @get('/login') # or @route('/login')
