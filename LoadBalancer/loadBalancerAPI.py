@@ -9,6 +9,7 @@ local_addr = ''
 leader_addr = ''
 array_server = []
 cpu_availability = 0
+timecount = 0
 
 
 #thread
@@ -22,7 +23,15 @@ def heart_beat():
             for addr in array_server:
                 if (addr != localhost) :
                     response = get_request('http://'+addr+':'+local_port+'/api/heart_beat')
-                    
+
+def increment_time():
+    global timecount
+    
+    while (timecount<10):
+        time.sleep(1)
+        timecount += 1
+    print "timeout"
+
 # functions
 def search(array,ip):
     for obj in array:
@@ -42,6 +51,9 @@ def initialize():
     global local_port
     global leader_addr
     global local_addr
+    global time
+
+    thread.start_new_thread(increment_time, () )
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
     localhost = shell_response.read()
     localhost = localhost[:-1]
@@ -133,8 +145,10 @@ def index(percentage):
 @route('/api/heart_beat')
 def index():
     global cpu_availability
+    global timecount
     print
     print "Get Heartbeat from leader, sending availability ", cpu_availability
+    timecount = 0
     print
     return cpu_availability
 
