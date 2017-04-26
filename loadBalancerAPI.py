@@ -1,5 +1,6 @@
 from bottle import route, run, request
 import requests, sys, os, thread, time
+from strukturDataLog import Log
 
 # variables
 
@@ -10,19 +11,38 @@ leader_addr = ''
 array_server = []
 cpu_availability = 0
 timecount = 0
-
+main_log = Log()
+term = 1
 
 #thread
 def heart_beat():
     global array_server
+    global cpu_availability
+    global term
+    global main_log
     while len(array_server) <= 1:
         print "Waiting for follower"
         time.sleep(1)
         while len(array_server) > 1:
             time.sleep(5)
+            max_availability_number = cpu_availability
+            max_availability_address = local_addr
             for addr in array_server:
                 if (addr != localhost) :
                     response = get_request('http://'+addr+'/api/heart_beat')
+                    if (max_availability_number < int(response.text)):
+                        max_availability_number = int(response.text)
+                        max_availability_address = addr
+            #Enter address which has max availability to local log
+            print
+            print "Push new log address= "+max_availability_address+"  term= " + term
+            print
+            main_log.add(max_availability_address,term)
+            
+            #Spread log to follower
+            for addr in array_server:
+				response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+term)
+                       						
 
 def increment_time():
     global timecount
@@ -151,6 +171,15 @@ def index():
     timecount = 0
     print
     return cpu_availability
+    
+#API for catch new log from leader
+@route('/api/spread_log/:address/:term')
+def index(address, term):
+    print
+    print "Push new log address= "+max_availability_address+"  term= " + term
+    print
+    main_log.add(max_availability_address,term)
+    return 'success'
 
 
 # main
