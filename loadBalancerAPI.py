@@ -24,12 +24,14 @@ def heart_beat():
         print "Waiting for follower"
         time.sleep(1)
         while len(array_server) > 1:
+            print "Starting heart beat"
             time.sleep(5)
             max_availability_number = cpu_availability
             max_availability_address = local_addr
             for addr in array_server:
                 if (addr != localhost) :
                     response = get_request('http://'+addr+'/api/heart_beat')
+                    print "Follower response : "+response.text 
                     if (max_availability_number < int(response.text)):
                         max_availability_number = int(response.text)
                         max_availability_address = addr
@@ -170,7 +172,7 @@ def index():
     print "Get Heartbeat from leader, sending availability ", cpu_availability
     timecount = 0
     print
-    return cpu_availability
+    return str(cpu_availability)
     
 #API for catch new log from leader
 @route('/api/spread_log/:address/:term')
