@@ -45,10 +45,13 @@ def heart_beat():
             for addr in array_server:
                 if (addr != local_addr) :
                     response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
-                    if (response.status_code == '200'):
+                    if (int(response.status_code) == 200):
                         add_log_success += 1
-            
-            if (add_log_success > len(array_server) / 2 + 1) : 
+            print
+            print "Number add log success = ", add_log_success
+            print "Number Majority = ", len(array_server) / 2 + 1
+            print
+            if (add_log_success >= len(array_server) / 2 + 1) : 
                 #Commit to internal log
                 main_log.commit_ip_term(max_availability_address,term)
                 #Commit log to follower
