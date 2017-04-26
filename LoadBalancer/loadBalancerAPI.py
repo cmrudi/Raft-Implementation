@@ -41,20 +41,21 @@ def initialize():
     global localhost
     global local_port
     global leader_addr
+    global local_addr
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
     localhost = shell_response.read()
     localhost = localhost[:-1]
     leader_addr = sys.argv[1]
     local_port = sys.argv[2]
     local_addr = localhost + ':' + local_port
-    if (str(localhost) == str(leader_host)):
+    if (str(local_addr) == str(leader_addr)):
         print
         print('Initiate Leader')
         print
-        array_server.append(localhost)
+        array_server.append(local_addr)
         thread.start_new_thread(heart_beat, () )
     else:
-        response = get_request('http://'+ leader_host + ':' + local_port +'/api/join_system/'+localhost)
+        response = get_request('http://'+ leader_addr +'/api/join_system/'+local_addr)
 
         # put response in an array_search
         address = response.text # ip addresses
@@ -87,7 +88,7 @@ def get_request(url):
 @route('/api/search_prime/:prime_nth')
 def index(prime_nth):
     r = requests.get('https://github.com/cmrudi')
-    return '<b>Hello %s!</b>' % localhost
+    return '<b>Hello %s!</b>' % prime_nth
     
 @route('/api/catch_request/:name')
 def index(name):
@@ -103,7 +104,7 @@ def index(ip_addr):
         
         for addr in array_server:
 			server_list += addr + '_'
-			if (addr != leader_host and addr != ip_addr):
+			if (addr != leader_addr and addr != ip_addr):
 				response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
 				print(addr + '- '), response
 	
