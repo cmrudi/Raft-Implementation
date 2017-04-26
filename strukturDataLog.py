@@ -1,3 +1,5 @@
+# data structure and data type
+
 class Log_element:
 	def __init__(self, ip, term, com):
 		self.ip = ip # ip address
@@ -23,13 +25,13 @@ class Log:
 
 	def commit_ip_term(self, ip, term):
 	# commit the latest that has num element numRequest
-		i = len(self.log_elem)-1
-		while (i>=0):
+		i = 0
+		while (i<len(self.log_elem)):
 			if ((self.log_elem[i].ip == ip) and (self.log_elem[i].term == term) and (self.log_elem[i].com == False)):
 				self.log_elem[i].com = True
 				break
 			else:
-				i = i-1
+				i = i+1
 
 	def uncommit(self):
 	# uncommit the last value
@@ -37,13 +39,13 @@ class Log:
 
 	def uncommit_ip_term(self, ip, term):
 	# uncommit the latest that has num element numRequest
-		i = len(self.log_elem)-1
-		while (i>=0):
+		i = 0
+		while (i<len(self.log_elem)):
 			if ((self.log_elem[i].ip == ip) and (self.log_elem[i].term == term) and (self.log_elem[i].com == True)):
 				self.log_elem[i].com = False
 				break
 			else:
-				i = i-1
+				i = i+1
 
 	def check_ip(self, ip):
 	# check if there exist the num_request
@@ -61,8 +63,6 @@ class Log:
 				return self.log_elem[i].com
 			else:
 				i = i-1
-
-
 
 # main (debuging)
 """
