@@ -4,8 +4,9 @@ import requests, sys, os, thread, time
 # variables
 
 localhost = ''
-leader_host = ''
-local_port = '5000'
+local_port = ''
+local_addr = ''
+leader_addr = ''
 array_server = []
 cpu_availability = 0
 
@@ -13,13 +14,15 @@ cpu_availability = 0
 #thread
 def heart_beat():
     global array_server
-    print "heart beat"
-    time.sleep(5)
-    while len(array_server) > 1:
-        time.sleep(5)
-        for addr in array_server:
-            response = get_request('http://'+addr+':'+local_port+'/api/heart_beat')
-
+    while len(array_server) <= 1:
+        print "heart beat"
+        time.sleep(1)
+        while len(array_server) > 1:
+            time.sleep(5)
+            for addr in array_server:
+                if (addr != localhost) :
+                    response = get_request('http://'+addr+':'+local_port+'/api/heart_beat')
+                    
 # functions
 def search(array,ip):
     for obj in array:
@@ -30,16 +33,20 @@ def search(array,ip):
 
 def initialize():
 	
-    if (len(sys.argv) != 2) :
-		print "Plese use following command: Python loadBalancerAPI <current_leader_ip_address>"
+    if (len(sys.argv) != 3) :
+		print "Plese use following command: Python loadBalancerAPI <current_leader_address> <your_port>"
+		print "example python loadBalancerAPI.py 192.168.199.1:5000 4000"
 		sys.exit()
 	
     global localhost
-    global leader_host
+    global local_port
+    global leader_addr
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
     localhost = shell_response.read()
     localhost = localhost[:-1]
-    leader_host = sys.argv[1]  
+    leader_addr = sys.argv[1]
+    local_port = sys.argv[2]
+    local_addr = localhost + ':' + local_port
     if (str(localhost) == str(leader_host)):
         print
         print('Initiate Leader')
