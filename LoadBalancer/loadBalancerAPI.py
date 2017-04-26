@@ -13,6 +13,7 @@ cpu_availability = 0
 #thread
 def heart_beat():
     global array_server
+    print "heart beat"
     time.sleep(5)
     while len(array_server) > 1:
         time.sleep(5)
@@ -122,7 +123,7 @@ def index(percentage):
     
 #API to get heartbeat from leader and send cpu availability
 @route('/api/heart_beat')
-def index(percentage):
+def index():
     global cpu_availability
     print
     print "Get Heartbeat from leader, sending availability ", cpu_availability
