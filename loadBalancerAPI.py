@@ -180,7 +180,7 @@ def index(address, term):
     print
     print "Push new log address= "+address+"  term= " + term
     print
-    main_log.add(max_availability_address,term)
+    main_log.add(address,term)
     return 'success'
 
 
