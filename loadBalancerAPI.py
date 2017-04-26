@@ -13,6 +13,7 @@ cpu_availability = 0
 timecount = 0
 main_log = Log()
 term = 1
+position = 0 #initialiization. 1 for Leader, 2 for Follower, 3 for Candidate
 
 #thread
 def heart_beat():
@@ -67,6 +68,30 @@ def increment_time():
         time.sleep(1)
         timecount += 1
     print "timeout"
+
+
+def leader_election():
+    global array_server
+    global local_addr
+    global term
+    global position
+
+    #candidate
+    if (position == 3) :
+        success_vote = 0
+        for addr in array_server:
+            if (addr != local_addr) :
+                response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
+                if (int(response.status_code) == 200):
+                    success_vote += 1
+        print "Number success vote = ", success_vote
+        print "Number Majority = ", len(array_server) / 2 + 1
+        print
+        if (success_vote >= len(array_server) / 2 + 1) : 
+            
+    else if (position == 2) :
+        #terima vote, kirim respon
+
 
 # functions
 def search(array,ip):
@@ -205,6 +230,16 @@ def index(address, term):
     print
     main_log.commit_ip_term(address,term)
     return 'success'
+
+#API for catch new log from leader
+@route('/api/vote_leader/:address/:term')
+def index(address, term):
+    print
+    print "Vote for new leader= "+address+"  term= " + term
+    print
+    #mekanisme penentuan 'yes' atau 'no'
+
+    return 'yes'
 
 
 
