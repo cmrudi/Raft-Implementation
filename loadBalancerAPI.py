@@ -15,6 +15,7 @@ main_log = Log()
 term = 1
 position = 0 #1 as leader, 2 as follower, 3 as candidate
 election = False
+election_timeout = 10
 
 #thread
 def heart_beat():
@@ -22,6 +23,9 @@ def heart_beat():
     global cpu_availability
     global term
     global main_log
+    global leader_addr
+    global local_addr
+
     while len(array_server) <= 1:
         print "Waiting for follower"
         time.sleep(1)
@@ -34,7 +38,7 @@ def heart_beat():
             for addr in array_server:
                 if (addr != local_addr) :
                     response = get_request('http://'+addr+'/api/heart_beat')
-                    if (max_availability_number < int(response.text)):
+                    if (max_availability_number < int(response.text)):  
                         max_availability_number = int(response.text)
                         max_availability_address = addr
             #Enter address which has max availability to local log
@@ -68,7 +72,7 @@ def increment_time():
     global position
     global election
     
-    while (timecount<10):
+    while (timecount<election_timeout):
         time.sleep(1)
         if not (election):
             timecount += 1
@@ -83,6 +87,12 @@ def search(array,ip):
             return True
 
     return False
+
+def follower():
+    while (position!=1) :
+        # do nothing
+        pass
+    thread.start_new_thread(heart_beat, () )
 
 def initialize():
     
@@ -131,10 +141,8 @@ def initialize():
         print
         print "Current Server in System : ",array_server
         print
-        while (position!=1) :
-            # do nothing
-            pass
-        thread.start_new_thread(heart_beat, () )
+        thread.start_new_thread(follower, () )
+        
 
 #Leader Election
 def leader_election():
