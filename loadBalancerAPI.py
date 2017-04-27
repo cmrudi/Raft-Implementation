@@ -14,6 +14,7 @@ timecount = 0
 main_log = Log()
 term = 1
 position = 0 #1 as leader, 2 as follower, 3 as candidate
+election = False
 
 #thread
 def heart_beat():
@@ -25,6 +26,7 @@ def heart_beat():
         print "Waiting for follower"
         time.sleep(1)
         while len(array_server) > 1:
+            leader_addr = local_addr
             print "Starting heart beat"
             time.sleep(5)
             max_availability_number = cpu_availability
@@ -64,12 +66,14 @@ def heart_beat():
 def increment_time():
     global timecount
     global position
+    global election
     
     while (timecount<10):
         time.sleep(1)
-        timecount += 1
+        if not (election):
+            timecount += 1
     print "timeout"
-    position = 3
+    position = 3 # candidate
     thread.start_new_thread(leader_election, () )
 
 # functions
@@ -100,12 +104,14 @@ def initialize():
     local_port = sys.argv[2]
     local_addr = localhost + ':' + local_port
     if (str(local_addr) == str(leader_addr)):
+        position = 1 # leader
         print
         print('Initiate Leader')
         print
         array_server.append(local_addr)
         thread.start_new_thread(heart_beat, () )
     else:
+        position = 2 # follower
         thread.start_new_thread(increment_time, () )
         response = get_request('http://'+ leader_addr +'/api/join_system/'+local_addr)
 
@@ -125,6 +131,10 @@ def initialize():
         print
         print "Current Server in System : ",array_server
         print
+        while (position!=1) :
+            # do nothing
+            pass
+        thread.start_new_thread(heart_beat, () )
 
 #Leader Election
 def leader_election():
@@ -149,10 +159,9 @@ def leader_election():
         print "Number Majority = ", len(array_server) / 2 + 1
         print
         if (success_vote >= len(array_server) / 2 + 1) : 
-            position = 1
             print "I am the leader!"
-            
-    
+            position = 1
+
 
 def get_request(url):
     print
@@ -263,6 +272,10 @@ def index(address, term):
 @route('/api/vote_leader/:address/:req_term')
 def index(address, req_term):
     global term
+    global election
+
+    timecount = 0
+    election = True
     print
     print "Vote for new leader= "+address+"  term= " + req_term
     print
@@ -270,6 +283,7 @@ def index(address, req_term):
     # no: term t  atau lebih besar dari request
     # yes: term lebih kecil dari term request
     # if (term<req_term) :
+    election = False
     return 'yes'
     # else :
     #     return 'no'
