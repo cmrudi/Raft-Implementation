@@ -38,7 +38,7 @@ def heart_beat():
             time.sleep(1)
         while len(array_server) > 1 and position == 1:
             leader_addr = local_addr
-            print "Starting heart beat"
+            #print_log("Starting heart beat")
             time.sleep(5)
             max_availability_number = cpu_availability
             max_availability_address = local_addr
@@ -49,9 +49,8 @@ def heart_beat():
                         max_availability_number = int(response.text)
                         max_availability_address = addr
             #Enter address which has max availability to local log
-            print
-            print "Push new log address= "+max_availability_address+"  term= " + str(term)
-            print
+            #print_log("Push new log address= "+max_availability_address+"  term= " + str(term)) 
+            
             main_log.add(max_availability_address,term)
             
             add_log_success = 1
@@ -61,10 +60,10 @@ def heart_beat():
                     response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
                     if (int(response.status_code) == 200):
                         add_log_success += 1
-            print
-            print "Number add log success = ", add_log_success
-            print "Number Majority = ", len(array_server) / 2 + 1
-            print
+
+            #print_log("Number add log success = " +  str(add_log_success))
+            #print_log("Number Majority = " + str(len(array_server) / 2 + 1))
+
             if (add_log_success >= len(array_server) / 2 + 1) : 
                 #Commit to internal log
                 main_log.commit_ip_term(max_availability_address,term)
@@ -87,9 +86,8 @@ def increment_time():
             time.sleep(1)
             if not (election):
                 timecount += 1
-            print timecount
-        print "timeout"
-        print election_timeout
+            #print timecount
+        print_log("election timeout " + str(election_timeout))
         position = 3 # candidate
         if not(hasVoted) :
             thread.start_new_thread(leader_election, () )
@@ -109,6 +107,11 @@ def follower():
         # do nothing
         pass
     thread.start_new_thread(heart_beat, () )
+
+def print_log(log):
+    print
+    print log
+    print
 
 def initialize():
     
@@ -132,9 +135,7 @@ def initialize():
     local_addr = localhost + ':' + local_port
     if (str(local_addr) == str(leader_addr)):
         position = 1 # leader
-        print
-        print('Initiate Leader')
-        print
+        print_log("Initiate Leader")
         array_server.append(local_addr)
         thread.start_new_thread(heart_beat, () )
     else:
@@ -156,9 +157,9 @@ def initialize():
                 array_server.append(ip)
                 ip = ''
             i = i+1
-        print
-        print "Current Server in System : ",array_server
-        print
+        #print
+        #print "Current Server in System : ",array_server
+        #print
         thread.start_new_thread(follower, () )
         
 
@@ -186,17 +187,16 @@ def leader_election():
                     response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
                     if (response.text == 'yes'):
                         success_vote += 1
-            print "Number success vote = ", success_vote
-            print "Number Majority = ", len(array_server) / 2 + 1
-            print
+            #print "Number success vote = ", success_vote
+            #print "Number Majority = ", len(array_server) / 2 + 1
+            #print
             if (success_vote >= len(array_server) / 2 + 1) : 
-                print "I am the leader!"
+                #print "I am the leader!"
                 position = 1
 
                 # tell the followers through api
                 for addr in array_server:
                     if ((addr != local_addr) and (addr != leader_addr)) :
-                        print 'Tell to ' + addr
                         response = get_request('http://'+addr+'/api/make_me_leader/'+local_addr+'/'+str(term))
                         # if (response.text == 'ok'):
     except Exception:
@@ -205,11 +205,11 @@ def leader_election():
 
 def get_request(url):
     try:
-        print
-        print "GET Request to ", url
+        #print
+        #print "GET Request to ", url
         response = requests.get(url)
-        print "Response -> Status: ", response.status_code,' Text: ', response.text
-        print
+        #print "Response -> Status: ", response.status_code,' Text: ', response.text
+        #print
         return response
     except requests.exceptions.RequestException as e:
         # raise e
@@ -310,18 +310,14 @@ def index(_term):
 #API for catch new log from leader
 @route('/api/spread_log/:address/:term')
 def index(address, term):
-    print
-    print "Push new log address= "+address+"  term= " + term
-    print
+    #print_log("Push new log address= "+address+"  term= " + term)
     main_log.add(address,term)
     return 'success'
     
 #API for commit log from leader
 @route('/api/commit_log/:address/:term')
 def index(address, term):
-    print
-    print "Commit log address= "+address+"  term= " + term
-    print
+    #print_log("Commit log address= "+address+"  term= " + term)
     main_log.commit_ip_term(address,term)
     return 'success'
 
