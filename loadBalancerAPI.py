@@ -13,7 +13,7 @@ cpu_availability = 0
 timecount = 0
 main_log = Log()
 term = 1
-position = 0
+position = 0 #1 as leader, 2 as follower, 3 as candidate
 
 #thread
 def heart_beat():
@@ -63,11 +63,14 @@ def heart_beat():
 
 def increment_time():
     global timecount
+    global position
     
     while (timecount<10):
         time.sleep(1)
         timecount += 1
     print "timeout"
+    position = 3
+    thread.start_new_thread(leader_election, () )
 
 # functions
 def search(array,ip):
@@ -130,15 +133,13 @@ def leader_election():
     global term
     global position
 
-    if (timecount==10) :
-        position = 3
     #candidate
     if (position == 3) :
-        success_vote = 0
+        success_vote = 1
         for addr in array_server:
             if (addr != local_addr) :
                 response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
-                if (int(response.status_code) == 200):
+                if (response.text == 'yes'):
                     success_vote += 1
         print "Number success vote = ", success_vote
         print "Number Majority = ", len(array_server) / 2 + 1
@@ -147,9 +148,7 @@ def leader_election():
             position = 1
             print "I am the leader!"
             
-    else if (position == 2) :
-        #terima vote, kirim respon
-
+    
 
 def get_request(url):
     print
