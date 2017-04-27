@@ -30,11 +30,12 @@ def heart_beat():
     global main_log
     global leader_addr
     global local_addr
+    global position
 
     try:
         while len(array_server) <= 1:
             print "Waiting for follower"
-            time.sleep(10)
+            time.sleep(1)
         while len(array_server) > 1 and position == 1:
             leader_addr = local_addr
             print "Starting heart beat"
@@ -86,9 +87,12 @@ def increment_time():
             time.sleep(1)
             if not (election):
                 timecount += 1
+            print timecount
         print "timeout"
+        print election_timeout
         position = 3 # candidate
-        thread.start_new_thread(leader_election, () )
+        if not(hasVoted) :
+            thread.start_new_thread(leader_election, () )
     except Exception:
         print traceback.format_exc()
 
@@ -118,6 +122,7 @@ def initialize():
     global leader_addr
     global local_addr
     global timecount
+    global position
 
     shell_response = os.popen('ifconfig wlp2s0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
     localhost = shell_response.read()
@@ -133,7 +138,7 @@ def initialize():
         array_server.append(local_addr)
         thread.start_new_thread(heart_beat, () )
     else:
-        time.sleep(3)
+        time.sleep(2)
         position = 2 # follower
         thread.start_new_thread(increment_time, () )
         response = get_request('http://'+ leader_addr +'/api/join_system/'+local_addr)
@@ -164,12 +169,15 @@ def leader_election():
     global term
     global position
     global term
+    global hasVoted
 
     try:
         #candidate
         if (position == 3) :
+            election = True
             term += 1
             success_vote = 1
+            hasVoted = True
             print len(array_server)
             for addr in array_server:
                 print 'ke' + addr
@@ -323,21 +331,25 @@ def index(address, req_term):
     global term
     global election
     global hasVoted
+    global election_timeout
 
 
     timecount = 0
+    election_timeout = randint(10,20)
     election = True
-    print
-    print "Vote for new leader= "+address+"  term= " + req_term
-    print
+
     # mekanisme penentuan 'yes' atau 'no'
     # no: term t  atau lebih besar dari request
     # yes: term lebih kecil dari term request
     if ((term<int(req_term) )and not(hasVoted)) :
+        print
+        print "Vote for new leader= "+address+"  term= " + req_term
+        print
         election = False
         hasVoted = True
         return 'yes'
     else :
+        election = False
         return 'no'
 
 #API for catch Leading announcment
