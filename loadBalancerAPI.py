@@ -34,7 +34,7 @@ def heart_beat():
     try:
         while len(array_server) <= 1:
             print "Waiting for follower"
-            time.sleep(1)
+            time.sleep(10)
         while len(array_server) > 1 and position == 1:
             leader_addr = local_addr
             print "Starting heart beat"
@@ -133,6 +133,7 @@ def initialize():
         array_server.append(local_addr)
         thread.start_new_thread(heart_beat, () )
     else:
+        time.sleep(3)
         position = 2 # follower
         thread.start_new_thread(increment_time, () )
         response = get_request('http://'+ leader_addr +'/api/join_system/'+local_addr)
