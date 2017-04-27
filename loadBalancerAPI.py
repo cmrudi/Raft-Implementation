@@ -13,6 +13,7 @@ cpu_availability = 0
 timecount = 0
 main_log = Log()
 term = 1
+position = 0
 
 #thread
 def heart_beat():
