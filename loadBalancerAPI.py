@@ -137,8 +137,11 @@ def leader_election():
     if (position == 3) :
         term += 1
         success_vote = 1
+        print len(array_server)
         for addr in array_server:
+            print 'ke' + addr
             if ((addr != local_addr) and (addr != leader_addr)) :
+                print 'kirim rikues dari' + addr
                 response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
                 if (response.text == 'yes'):
                     success_vote += 1
@@ -243,7 +246,7 @@ def index(address, req_term):
     print "Vote for new leader= "+address+"  term= " + req_term
     print
     # mekanisme penentuan 'yes' atau 'no'
-    # no: term sama atau lebih besar dari request
+    # no: term t  atau lebih besar dari request
     # yes: term lebih kecil dari term request
     # if (term<req_term) :
     return 'yes'
