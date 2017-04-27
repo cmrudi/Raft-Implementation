@@ -132,12 +132,13 @@ def leader_election():
     global local_addr
     global term
     global position
-
+    global term
     #candidate
     if (position == 3) :
+        term += 1
         success_vote = 1
         for addr in array_server:
-            if (addr != local_addr) :
+            if ((addr != local_addr) and (addr != leader_addr)) :
                 response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
                 if (response.text == 'yes'):
                     success_vote += 1
@@ -235,20 +236,22 @@ def index(address, term):
     return 'success'
 
 #API for catch new log from leader
-@route('/api/vote_leader/:address/:term')
-def index(address, term):
+@route('/api/vote_leader/:address/:req_term')
+def index(address, req_term):
+    global term
     print
-    print "Vote for new leader= "+address+"  term= " + term
+    print "Vote for new leader= "+address+"  term= " + req_term
     print
-    #mekanisme penentuan 'yes' atau 'no'
-
+    # mekanisme penentuan 'yes' atau 'no'
+    # no: term sama atau lebih besar dari request
+    # yes: term lebih kecil dari term request
+    # if (term<req_term) :
     return 'yes'
-
-
+    # else :
+    #     return 'no'
 
 
 # main
-
 if __name__ == '__main__':
     initialize()
     run(host=localhost, port=local_port)
