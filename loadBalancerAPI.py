@@ -209,7 +209,8 @@ def get_request(url):
         print "Request GAGAL"
         print "============="
         print
-        return Get()
+        if "heart_beat" or "spread_log" or "commit_log" or "vote_leader" in url :
+            return Get()
     
 
 # route
