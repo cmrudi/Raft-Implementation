@@ -1,6 +1,9 @@
 from bottle import route, run, request
 import requests, sys, os, thread, time
 from strukturDataLog import Log
+from get import Get
+from random import randint
+import traceback
 
 # variables
 
@@ -15,7 +18,9 @@ main_log = Log()
 term = 1
 position = 0 #1 as leader, 2 as follower, 3 as candidate
 election = False
-election_timeout = 10
+
+election_timeout = randint(10,20)
+hasVoted = False
 
 #thread
 def heart_beat():
@@ -26,10 +31,11 @@ def heart_beat():
     global leader_addr
     global local_addr
 
-    while len(array_server) <= 1:
-        print "Waiting for follower"
-        time.sleep(1)
-        while len(array_server) > 1:
+    try:
+        while len(array_server) <= 1:
+            print "Waiting for follower"
+            time.sleep(1)
+        while len(array_server) > 1 and position == 1:
             leader_addr = local_addr
             print "Starting heart beat"
             time.sleep(5)
@@ -37,7 +43,7 @@ def heart_beat():
             max_availability_address = local_addr
             for addr in array_server:
                 if (addr != local_addr) :
-                    response = get_request('http://'+addr+'/api/heart_beat')
+                    response = get_request('http://'+addr+'/api/heart_beat/'+str(term))
                     if (max_availability_number < int(response.text)):  
                         max_availability_number = int(response.text)
                         max_availability_address = addr
@@ -65,20 +71,26 @@ def heart_beat():
                 for addr in array_server:
                     if (addr != local_addr) :
                         response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term))
+    except Exception:
+        print traceback.format_exc()
                                                
 
 def increment_time():
     global timecount
     global position
     global election
-    
-    while (timecount<election_timeout):
-        time.sleep(1)
-        if not (election):
-            timecount += 1
-    print "timeout"
-    position = 3 # candidate
-    thread.start_new_thread(leader_election, () )
+    global election_timeout 
+
+    try:
+        while (timecount<election_timeout):
+            time.sleep(1)
+            if not (election):
+                timecount += 1
+        print "timeout"
+        position = 3 # candidate
+        thread.start_new_thread(leader_election, () )
+    except Exception:
+        print traceback.format_exc()
 
 # functions
 def search(array,ip):
@@ -151,33 +163,53 @@ def leader_election():
     global term
     global position
     global term
-    #candidate
-    if (position == 3) :
-        term += 1
-        success_vote = 1
-        print len(array_server)
-        for addr in array_server:
-            print 'ke' + addr
-            if ((addr != local_addr) and (addr != leader_addr)) :
-                print 'kirim rikues dari' + addr
-                response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
-                if (response.text == 'yes'):
-                    success_vote += 1
-        print "Number success vote = ", success_vote
-        print "Number Majority = ", len(array_server) / 2 + 1
-        print
-        if (success_vote >= len(array_server) / 2 + 1) : 
-            print "I am the leader!"
-            position = 1
+
+    try:
+        #candidate
+        if (position == 3) :
+            term += 1
+            success_vote = 1
+            print len(array_server)
+            for addr in array_server:
+                print 'ke' + addr
+                if ((addr != local_addr) and (addr != leader_addr)) :
+                    print 'kirim rikues dari' + addr
+                    response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
+                    if (response.text == 'yes'):
+                        success_vote += 1
+            print "Number success vote = ", success_vote
+            print "Number Majority = ", len(array_server) / 2 + 1
+            print
+            if (success_vote >= len(array_server) / 2 + 1) : 
+                print "I am the leader!"
+                position = 1
+
+                # tell the followers through api
+                for addr in array_server:
+                    if ((addr != local_addr) and (addr != leader_addr)) :
+                        print 'Tell to ' + addr
+                        response = get_request('http://'+addr+'/api/make_me_leader/'+local_addr+'/'+str(term))
+                        # if (response.text == 'ok'):
+    except Exception:
+        print traceback.format_exc()                    
 
 
 def get_request(url):
-    print
-    print "GET Request to ", url
-    response = requests.get(url)
-    print "Response -> Status: ", response.status_code,' Text: ', response.text
-    print
-    return response
+    try:
+        print
+        print "GET Request to ", url
+        response = requests.get(url)
+        print "Response -> Status: ", response.status_code,' Text: ', response.text
+        print
+        return response
+    except requests.exceptions.RequestException as e:
+        # raise e
+        print
+        print "============="
+        print "Request GAGAL"
+        print "============="
+        print
+        return Get()
     
 
 # route
@@ -246,8 +278,15 @@ def index(percentage):
     return 'success'
     
 #API to get heartbeat from leader and send cpu availability
-@route('/api/heart_beat')
-def index():
+@route('/api/heart_beat/:_term')
+def index(_term):
+    #handling old leader
+    global local_addr
+    global leader_addr
+    if (local_addr == leader_addr) :
+        leader_addr = ''
+        position = 2
+
     global array_server
     global cpu_availability
     global timecount
@@ -281,6 +320,8 @@ def index(address, term):
 def index(address, req_term):
     global term
     global election
+    global hasVoted
+
 
     timecount = 0
     election = True
@@ -290,12 +331,31 @@ def index(address, req_term):
     # mekanisme penentuan 'yes' atau 'no'
     # no: term t  atau lebih besar dari request
     # yes: term lebih kecil dari term request
-    # if (term<req_term) :
-    election = False
-    return 'yes'
-    # else :
-    #     return 'no'
+    if ((term<int(req_term) )and not(hasVoted)) :
+        election = False
+        hasVoted = True
+        return 'yes'
+    else :
+        return 'no'
 
+#API for catch Leading announcment
+@route('/api/make_me_leader/:address/:req_term')
+def index(address, req_term):
+    global term
+    global election
+    global leader_addr
+    global hasVoted
+
+
+    hasVoted = False
+    leader_addr = address
+    term = int(req_term)
+    position = 2
+    print
+    print "Vote for new leader= "+address+"  term= " + req_term
+    print
+    
+    return 'ok'
 
 # main
 if __name__ == '__main__':
