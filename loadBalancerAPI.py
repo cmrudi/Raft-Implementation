@@ -185,8 +185,19 @@ def index(ip_addr):
         for addr in array_server:
             server_list += addr + '_'
             if (addr != leader_addr and addr != ip_addr):
-                response = request.get('http://'+addr+'api/get_new_server/'+ip_addr)
+                print "New Server Join Success"
+                print
+                print
+                print
+                print
+                response = get_request('http://'+addr+'/api/get_new_server/'+ip_addr)
                 print(addr + '- '), response
+            else:
+                print "New Server Join Failed"
+                print
+                print
+                print
+                print
     
     print
     print "Current Server in System : ",array_server
@@ -196,6 +207,14 @@ def index(ip_addr):
 #API to get new server that join the system    
 @route('/api/get_new_server/:ip_addr')
 def index(ip_addr):
+    global array_server
+    print
+    print
+    print
+    print "New server join system, address ",ip_addr
+    print
+    print
+    print
     array_server.append(ip_addr)
     return 'success'
     
@@ -212,10 +231,12 @@ def index(percentage):
 #API to get heartbeat from leader and send cpu availability
 @route('/api/heart_beat')
 def index():
+    global array_server
     global cpu_availability
     global timecount
     print
     print "Get Heartbeat from leader, sending availability ", cpu_availability
+    print array_server
     timecount = 0
     print
     return str(cpu_availability)
