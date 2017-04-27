@@ -122,6 +122,34 @@ def initialize():
         print "Current Server in System : ",array_server
         print
 
+#Leader Election
+def leader_election():
+    global array_server
+    global local_addr
+    global term
+    global position
+
+    if (timecount==10) :
+        position = 3
+    #candidate
+    if (position == 3) :
+        success_vote = 0
+        for addr in array_server:
+            if (addr != local_addr) :
+                response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
+                if (int(response.status_code) == 200):
+                    success_vote += 1
+        print "Number success vote = ", success_vote
+        print "Number Majority = ", len(array_server) / 2 + 1
+        print
+        if (success_vote >= len(array_server) / 2 + 1) : 
+            position = 1
+            print "I am the leader!"
+            
+    else if (position == 2) :
+        #terima vote, kirim respon
+
+
 def get_request(url):
     print
     print "GET Request to ", url
@@ -205,6 +233,17 @@ def index(address, term):
     print
     main_log.commit_ip_term(address,term)
     return 'success'
+
+#API for catch new log from leader
+@route('/api/vote_leader/:address/:term')
+def index(address, term):
+    print
+    print "Vote for new leader= "+address+"  term= " + term
+    print
+    #mekanisme penentuan 'yes' atau 'no'
+
+    return 'yes'
+
 
 
 
