@@ -174,6 +174,7 @@ def leader_election():
         if (position == 3) :
             term += 1
             success_vote = 1
+            hasVoted = True
             print len(array_server)
             for addr in array_server:
                 print 'ke' + addr
@@ -330,6 +331,7 @@ def index(address, req_term):
 
 
     timecount = 0
+    election_timeout = randint(10,20)
     election = True
     print
     print "Vote for new leader= "+address+"  term= " + req_term
