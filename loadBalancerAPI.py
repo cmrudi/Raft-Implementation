@@ -92,7 +92,8 @@ def increment_time():
         print "timeout"
         print election_timeout
         position = 3 # candidate
-        thread.start_new_thread(leader_election, () )
+        if not(hasVoted) :
+            thread.start_new_thread(leader_election, () )
     except Exception:
         print traceback.format_exc()
 
@@ -168,10 +169,12 @@ def leader_election():
     global term
     global position
     global term
+    global hasVoted
 
     try:
         #candidate
         if (position == 3) :
+            election = True
             term += 1
             success_vote = 1
             hasVoted = True
@@ -328,22 +331,25 @@ def index(address, req_term):
     global term
     global election
     global hasVoted
+    global election_timeout
 
 
     timecount = 0
     election_timeout = randint(10,20)
     election = True
-    print
-    print "Vote for new leader= "+address+"  term= " + req_term
-    print
+
     # mekanisme penentuan 'yes' atau 'no'
     # no: term t  atau lebih besar dari request
     # yes: term lebih kecil dari term request
     if ((term<int(req_term) )and not(hasVoted)) :
+        print
+        print "Vote for new leader= "+address+"  term= " + req_term
+        print
         election = False
         hasVoted = True
         return 'yes'
     else :
+        election = False
         return 'no'
 
 #API for catch Leading announcment
