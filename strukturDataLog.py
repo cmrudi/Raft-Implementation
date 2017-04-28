@@ -12,12 +12,19 @@ class Log:
 	
 	def print_log(self):
 	# print everything in the log (untuk debugging)
+		print "Print Log"
+		print
 		for obj in self.log_elem:
 			print obj.ip, obj.term, obj.com
+		print
+		print
 
 	def add(self,new_ip, term):
 	# adding a number request
 		self.log_elem.append(Log_element(new_ip, term,False))
+
+	def recovery(self, new_ip, term, idx):
+		self.log_elem[int(idx)] = Log_element(new_ip, term, True)
 
 	def commit(self):
 	# commit the last value
