@@ -18,8 +18,8 @@ main_log = Log()
 term = 1
 position = 0 #1 as leader, 2 as follower, 3 as candidate
 election = False
-
-election_timeout = randint(10,20)
+T = 10
+election_timeout = randint(T,2*T)
 hasVoted = False
 
 #thread
@@ -38,7 +38,7 @@ def heart_beat():
             time.sleep(1)
         while len(array_server) > 1 and position == 1:
             leader_addr = local_addr
-            #print_log("Starting heart beat")
+            print_log("Starting heart beat")
             time.sleep(5)
             max_availability_number = cpu_availability
             max_availability_address = local_addr
@@ -81,18 +81,20 @@ def increment_time():
     global election
     global election_timeout 
 
-    try:
+    while (position!=1):
+
         while (timecount<election_timeout):
             time.sleep(1)
             if not (election):
                 timecount += 1
-            #print timecount
-        print_log("election timeout " + str(election_timeout))
+            print timecount
+        print_log("election timeout = " + str(election_timeout))
         position = 3 # candidate
-        if not(hasVoted) :
-            thread.start_new_thread(leader_election, () )
-    except Exception:
-        print traceback.format_exc()
+        election = True
+
+        while (election):
+            pass
+
 
 # functions
 def search(array,ip):
@@ -141,9 +143,10 @@ def initialize():
     else:
         time.sleep(2)
         position = 2 # follower
-        thread.start_new_thread(increment_time, () )
         response = get_request('http://'+ leader_addr +'/api/join_system/'+local_addr)
-
+        thread.start_new_thread(increment_time, () )
+        thread.start_new_thread(leader_election, () )
+        
         # put response in an array_search
         address = response.text # ip addresses
         panjang = len(address)
@@ -171,37 +174,45 @@ def leader_election():
     global position
     global term
     global hasVoted
+    global election
+    global timecount
 
-    try:
-        #candidate
-        if (position == 3) :
-            election = True
-            term += 1
-            success_vote = 1
+    while (position != 1) :
+        while not(election) or (position!=3):
+            pass
+
+        # condition = timeout
+        hasVoted = False
+        # election has started 
+
+        term += 1
+        if not(hasVoted):
+            success_vote = 1 # vote for thyself
             hasVoted = True
-            print len(array_server)
-            for addr in array_server:
-                print 'ke' + addr
-                if ((addr != local_addr) and (addr != leader_addr)) :
-                    print 'kirim rikues dari' + addr
-                    response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
-                    if (response.text == 'yes'):
-                        success_vote += 1
-            #print "Number success vote = ", success_vote
-            #print "Number Majority = ", len(array_server) / 2 + 1
-            #print
-            if (success_vote >= len(array_server) / 2 + 1) : 
-                #print "I am the leader!"
-                position = 1
+        print len(array_server)
+        for addr in array_server:
+            print 'ke' + addr
+            if (addr != local_addr) :
+                print 'kirim rikues dari' + addr
+                response = get_request('http://'+addr+'/api/vote_leader/'+local_addr+'/'+str(term))
+                if (response.text == 'yes'):
+                    success_vote += 1
+        print "Number success vote = ", success_vote
+        print "Number Majority = ", len(array_server) / 2 + 1
+        print
+        timecount = 0
 
-                # tell the followers through api
-                for addr in array_server:
-                    if ((addr != local_addr) and (addr != leader_addr)) :
-                        response = get_request('http://'+addr+'/api/make_me_leader/'+local_addr+'/'+str(term))
-                        # if (response.text == 'ok'):
-    except Exception:
-        print traceback.format_exc()                    
+        if (success_vote >= len(array_server) / 2 + 1) : 
+            print "I am the leader!"
+            position = 1
+        else : position = 2 # back to follower
+        election = False
 
+    # tell the followers through api
+    for addr in array_server:
+        if ((addr != local_addr) and (addr != leader_addr)) :
+            response = get_request('http://'+addr+'/api/make_me_leader/'+local_addr+'/'+str(term))
+            # if (response.text == 'ok'):
 
 def get_request(url):
     try:
@@ -321,6 +332,7 @@ def index(address, term):
     main_log.commit_ip_term(address,term)
     return 'success'
 
+
 #API for catch new log from leader
 @route('/api/vote_leader/:address/:req_term')
 def index(address, req_term):
@@ -328,10 +340,11 @@ def index(address, req_term):
     global election
     global hasVoted
     global election_timeout
-
+    global timecount
+    global T
 
     timecount = 0
-    election_timeout = randint(10,20)
+    election_timeout = randint(T,2*T)
     election = True
 
     # mekanisme penentuan 'yes' atau 'no'
@@ -339,7 +352,7 @@ def index(address, req_term):
     # yes: term lebih kecil dari term request
     if ((term<int(req_term) )and not(hasVoted)) :
         print
-        print "Vote for new leader= "+address+"  term= " + req_term
+        print "Vote for new leader= " + address + "  term= " + req_term
         print
         election = False
         hasVoted = True
@@ -348,6 +361,7 @@ def index(address, req_term):
         election = False
         return 'no'
 
+
 #API for catch Leading announcment
 @route('/api/make_me_leader/:address/:req_term')
 def index(address, req_term):
@@ -355,17 +369,14 @@ def index(address, req_term):
     global election
     global leader_addr
     global hasVoted
+    global election
 
-
+    election = False
     hasVoted = False
-    leader_addr = address
-    term = int(req_term)
     position = 2
-    print
-    print "Vote for new leader= "+address+"  term= " + req_term
-    print
     
     return 'ok'
+
 
 # main
 if __name__ == '__main__':
