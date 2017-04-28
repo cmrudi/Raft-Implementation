@@ -55,10 +55,20 @@ def heart_beat():
             
             add_log_success = 1
             #Spread log to follower
+
+            idx = 0
+            last_address = '0'
+            last_term = 0
+
+            if (main_log.get_log_length() > 1):
+                idx = main_log.get_log_length() - 1
+                last_address = main_log.get_log_address(idx)
+                term = main_log.get_log_term(idx)
+
             for addr in array_server:
                 if (addr != local_addr) :
-                    response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term))
-                    if (int(response.status_code) == 200):
+                    response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term)+'/'+str(idx)+'/'+last_address+'/'+str(last_term))
+                    if (response.text == 'success'):
                         add_log_success += 1
 
             #print_log("Number add log success = " +  str(add_log_success))
@@ -70,7 +80,7 @@ def heart_beat():
                 #Commit log to follower
                 for addr in array_server:
                     if (addr != local_addr) :
-                        response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term))
+                        response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term)+'/'+str(idx))
     except Exception:
         print traceback.format_exc()
                                                
@@ -305,20 +315,31 @@ def index(_term):
     print array_server
     timecount = 0
     print
-    return str(cpu_availability)
+    return str(cpu_availability) 
     
 #API for catch new log from leader
-@route('/api/spread_log/:address/:term')
-def index(address, term):
+@route('/api/spread_log/:address/:term/:idx/:last_address/:last_term')
+def index(address, term, idx, last_address, last_term):
     #print_log("Push new log address= "+address+"  term= " + term)
-    main_log.add(address,term)
-    return 'success'
+    idx = int(idx)
+    if (idx != 0):
+        if (main_log.get_log_length() == idx and main_log.get_log_term(idx - 1) == last_term and main_log.get_log_address(idx - 1) == last_address):
+            main_log.add(address,term)
+            return 'success'
+        else:
+            return 'failed'
+    else:
+        main_log.add(address,term)
+        return 'success'
+
     
 #API for commit log from leader
-@route('/api/commit_log/:address/:term')
-def index(address, term):
+@route('/api/commit_log/:address/:term/:idx')
+def index(address, term, idx):
     #print_log("Commit log address= "+address+"  term= " + term)
-    main_log.commit_ip_term(address,term)
+    idx = int(idx)
+    if (main_log.get_log_term(idx) == term and main_log.get_log_address(idx) == address):
+        main_log.commit_ip_term(address,term)
     return 'success'
 
 #API for catch new log from leader

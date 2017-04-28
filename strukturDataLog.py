@@ -66,6 +66,17 @@ class Log:
 
 	def get_last_ip(self):
 		return self.log_elem[len(self.log_elem)-1].ip
+	def get_log_length(self):
+		return len(self.log_elem)
+
+	def get_log_address(self, idx):
+		return self.log_elem[idx].ip
+
+	def get_log_term(self, idx):
+		return self.log_elem[idx].term
+
+	def get_log_commit(self, idx):
+		return self.log_elem[idx].com
 
 # main (debuging)
 """
