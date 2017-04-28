@@ -64,6 +64,18 @@ class Log:
 			else:
 				i = i-1
 
+	def get_log_length(self):
+		return len(self.log_elem)
+
+	def get_log_address(self, idx):
+		return self.log_elem[idx].ip
+
+	def get_log_term(self, idx):
+		return self.log_elem[idx].term
+
+	def get_log_commit(self, idx):
+		return self.log_elem[idx].com
+
 # main (debuging)
 """
 log = Log()
