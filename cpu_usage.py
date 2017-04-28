@@ -1,3 +1,5 @@
+#class for sending get Request of memory availability percentage to node
+
 import psutil, time, requests, os, sys
 
 
@@ -15,6 +17,8 @@ local_port = sys.argv[1]
 
 while 1:
     time.sleep(5)
+
+    # get cpu_usage percentage
     avail_mem = str(psutil.virtual_memory().available*100/psutil.virtual_memory().total);
     print
     print

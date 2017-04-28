@@ -72,8 +72,15 @@ class Log:
 				i = i-1
 
 	def get_last_ip(self):
-		return self.log_elem[len(self.log_elem)-1].ip
-		
+		i = len(self.log_elem)-1
+		while (i>=0):
+			if (self.log_elem[i].com == True):
+				return self.log_elem[i].ip
+			else:
+				i = i-1
+		return 'None'
+
+
 	def get_log_length(self):
 		return len(self.log_elem)
 
@@ -86,35 +93,5 @@ class Log:
 	def get_log_commit(self, idx):
 		return self.log_elem[idx].com
 
-# main (debuging)
 
-log = Log()
-
-log.add("ip1",30)
-log.add("ip2",38)
-log.add("ip3",18)
-log.add("ip2",18)
-log.add("ip1",18)
-log.add("ip4",20)
-log.add("ip5",20)
-log.add("ip6",30)
-log.add("ip7",38)
-log.add("ip8",18)
-# commit(log)
-log.add("ip1",20)
-log.add("ip2",30)
-log.add("ip8",38)
-log.add("ipip",1277)
-
-log.commit_ip_term("ip1",18)
-log.commit_ip_term("ip3",18)
-log.commit_ip_term("ip",18)
-
-# log[1].num = 40
-
-# print log.check_number(18)
-# print log.get_commit(18)
-
-log.print_log()
-print log.get_last_ip
 

@@ -1,3 +1,5 @@
+# class for running many nodes with one command in terminal
+
 import multiprocessing, sys, os
 
 
