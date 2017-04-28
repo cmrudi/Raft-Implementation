@@ -34,7 +34,7 @@ def heart_beat():
 
     try:
         while len(array_server) <= 1:
-            print "Waiting for follower"
+            print "Waiting for follower, you have 20 seconds"
             time.sleep(20)
         while len(array_server) > 1 and position == 1:
             leader_addr = local_addr
@@ -55,6 +55,7 @@ def heart_beat():
             
             add_log_success = 1
             #Spread log to follower
+
             while (add_log_success < len(array_server) / 2 + 1 ):
                 time.sleep(2)
                 add_log_success = 1
@@ -84,6 +85,7 @@ def heart_beat():
                     for addr in array_server:
                         if (addr != local_addr) :
                             response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term)+'/'+str(idx))
+
     except Exception:
         print traceback.format_exc()
 
@@ -333,12 +335,13 @@ def index(_term):
     print array_server
     timecount = 0
     print
-    return str(cpu_availability) 
+    return str(cpu_availability)
     
 #API for catch new log from leader
-@route('/api/spread_log/:address/:term/:idx/:last_address/:last_term')
-def index(address, term, idx, last_address, last_term):
+@route('/api/spread_log/:address/:term')
+def index(address, term):
     #print_log("Push new log address= "+address+"  term= " + term)
+
     global main_log
     idx = int(idx)
     if (idx != 0):
@@ -355,10 +358,11 @@ def index(address, term, idx, last_address, last_term):
         main_log.add(address,term)
         return 'success'
 
+
     
 #API for commit log from leader
-@route('/api/commit_log/:address/:term/:idx')
-def index(address, term, idx):
+@route('/api/commit_log/:address/:term')
+def index(address, term):
     #print_log("Commit log address= "+address+"  term= " + term)
     global main_log
     idx = int(idx)
@@ -414,12 +418,42 @@ def index(address, req_term):
     
     return 'ok'
 
+
 #API for get log from leader for recovery
 @route('/api/get_log/:idx')
 def index(idx):
     global main_log
     idx = int(idx)
     return main_log.get_log_term(idx) + '-' + main_log.get_log_address(idx)
+
+#Request N (number) by Client, routing to lowest CPU usage IP
+@route('/:prime_nth')
+def index(prime_nth):
+    global main_log
+    global local_addr
+
+    #last committed IP, with max availability usage of CPU
+    freeIp = main_log.get_last_ip
+
+    #the current node is the IP
+    if (freeIp == local_addr) :
+        response = get_request('http://'+local_addr+':13337/'+prime_nth)
+        return response.text;
+
+    #Directing route to the free IP, not the current node
+    else :
+        response = get_request('http://'+freeIp+'/api/worker_request/'+prime_nth)        
+        return response.text;
+
+#Direct request to Worker
+@route('/api/worker_request/:prime_nth')
+def index(prime_nth):
+    global local_addr
+    response = get_request('http://'+local_addr+':13337/'+prime_nth)
+    return response.text;
+
+
+
 
 # main
 if __name__ == '__main__':
