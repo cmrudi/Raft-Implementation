@@ -64,6 +64,9 @@ class Log:
 			else:
 				i = i-1
 
+	def get_last_ip(self):
+		return self.log_elem[len(self.log_elem)-1].ip
+
 # main (debuging)
 """
 log = Log()
