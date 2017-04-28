@@ -19,7 +19,7 @@ term = 1
 position = 0 #1 as leader, 2 as follower, 3 as candidate
 election = False
 
-election_timeout = randint(10,20)
+election_timeout = randint(40,80)
 hasVoted = False
 
 #thread
@@ -35,7 +35,7 @@ def heart_beat():
     try:
         while len(array_server) <= 1:
             print "Waiting for follower"
-            time.sleep(1)
+            time.sleep(20)
         while len(array_server) > 1 and position == 1:
             leader_addr = local_addr
             #print_log("Starting heart beat")
@@ -55,34 +55,52 @@ def heart_beat():
             
             add_log_success = 1
             #Spread log to follower
+            while (add_log_success < len(array_server) / 2 + 1 ):
+                time.sleep(2)
+                add_log_success = 1
+                idx = 0
+                last_address = '0'
+                last_term = 1
 
-            idx = 0
-            last_address = '0'
-            last_term = 0
+                if (main_log.get_log_length() > 1):
+                    idx = main_log.get_log_length() - 1
+                    last_address = main_log.get_log_address(idx)
+                    term = main_log.get_log_term(idx)
 
-            if (main_log.get_log_length() > 1):
-                idx = main_log.get_log_length() - 1
-                last_address = main_log.get_log_address(idx)
-                term = main_log.get_log_term(idx)
-
-            for addr in array_server:
-                if (addr != local_addr) :
-                    response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term)+'/'+str(idx)+'/'+last_address+'/'+str(last_term))
-                    if (response.text == 'success'):
-                        add_log_success += 1
-
-            #print_log("Number add log success = " +  str(add_log_success))
-            #print_log("Number Majority = " + str(len(array_server) / 2 + 1))
-
-            if (add_log_success >= len(array_server) / 2 + 1) : 
-                #Commit to internal log
-                main_log.commit_ip_term(max_availability_address,term)
-                #Commit log to follower
                 for addr in array_server:
                     if (addr != local_addr) :
-                        response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term)+'/'+str(idx))
+                        response = get_request('http://'+addr+'/api/spread_log/'+max_availability_address+'/'+str(term)+'/'+str(idx)+'/'+last_address+'/'+str(last_term))
+                        if (response.text == 'success'):
+                            add_log_success += 1
+
+                #print_log("Number add log success = " +  str(add_log_success))
+                #print_log("Number Majority = " + str(len(array_server) / 2 + 1))
+
+                if (add_log_success >= len(array_server) / 2 + 1) : 
+                    #Commit to internal log
+                    main_log.commit_ip_term(max_availability_address,term)
+                    main_log.print_log()
+                    #Commit log to follower
+                    for addr in array_server:
+                        if (addr != local_addr) :
+                            response = get_request('http://'+addr+'/api/commit_log/'+max_availability_address+'/'+str(term)+'/'+str(idx))
     except Exception:
         print traceback.format_exc()
+
+#used by follower to recover log
+def recovery():
+    print_log('Start Recovery')
+    global main_log
+    fit = False
+    idx = main_log.get_log_length() - 1
+    while not fit and idx >= 0 :
+        response = get_request('http://'+leader_addr+'/api/get_log/'+str(idx))
+        term, address = (response.text).split("-")
+        if (term == main_log.get_log_term(idx) and address == main_log.get_log_address(idx)):
+            fit = True
+        else:
+            idx = idx - 1
+            main_log.recovery(address,term,idx)
                                                
 
 def increment_time():
@@ -321,12 +339,17 @@ def index(_term):
 @route('/api/spread_log/:address/:term/:idx/:last_address/:last_term')
 def index(address, term, idx, last_address, last_term):
     #print_log("Push new log address= "+address+"  term= " + term)
+    global main_log
     idx = int(idx)
     if (idx != 0):
         if (main_log.get_log_length() == idx and main_log.get_log_term(idx - 1) == last_term and main_log.get_log_address(idx - 1) == last_address):
             main_log.add(address,term)
             return 'success'
         else:
+            print main_log.print_log()
+            print "Leader Log at idx=",idx-1,"  last_term=",last_term,"   last_address=",last_address
+            print "Curren Log at idx=",idx-1,"  last_term=",main_log.get_log_term(idx - 1),"   last_address=",main_log.get_log_address(idx - 1)
+            thread.start_new_thread(recovery, () )
             return 'failed'
     else:
         main_log.add(address,term)
@@ -337,9 +360,11 @@ def index(address, term, idx, last_address, last_term):
 @route('/api/commit_log/:address/:term/:idx')
 def index(address, term, idx):
     #print_log("Commit log address= "+address+"  term= " + term)
+    global main_log
     idx = int(idx)
     if (main_log.get_log_term(idx) == term and main_log.get_log_address(idx) == address):
         main_log.commit_ip_term(address,term)
+        main_log.print_log()
     return 'success'
 
 #API for catch new log from leader
@@ -369,6 +394,7 @@ def index(address, req_term):
         election = False
         return 'no'
 
+
 #API for catch Leading announcment
 @route('/api/make_me_leader/:address/:req_term')
 def index(address, req_term):
@@ -387,6 +413,13 @@ def index(address, req_term):
     print
     
     return 'ok'
+
+#API for get log from leader for recovery
+@route('/api/get_log/:idx')
+def index(idx):
+    global main_log
+    idx = int(idx)
+    return main_log.get_log_term(idx) + '-' + main_log.get_log_address(idx)
 
 # main
 if __name__ == '__main__':
