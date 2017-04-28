@@ -12,12 +12,19 @@ class Log:
 	
 	def print_log(self):
 	# print everything in the log (untuk debugging)
+		print "Print Log"
+		print
 		for obj in self.log_elem:
 			print obj.ip, obj.term, obj.com
+		print
+		print
 
 	def add(self,new_ip, term):
 	# adding a number request
 		self.log_elem.append(Log_element(new_ip, term,False))
+
+	def recovery(self, new_ip, term, idx):
+		self.log_elem[int(idx)] = Log_element(new_ip, term, True)
 
 	def commit(self):
 	# commit the last value
@@ -64,8 +71,23 @@ class Log:
 			else:
 				i = i-1
 
+	def get_last_ip(self):
+		return self.log_elem[len(self.log_elem)-1].ip
+		
+	def get_log_length(self):
+		return len(self.log_elem)
+
+	def get_log_address(self, idx):
+		return self.log_elem[idx].ip
+
+	def get_log_term(self, idx):
+		return self.log_elem[idx].term
+
+	def get_log_commit(self, idx):
+		return self.log_elem[idx].com
+
 # main (debuging)
-"""
+
 log = Log()
 
 log.add("ip1",30)
@@ -94,4 +116,5 @@ log.commit_ip_term("ip",18)
 # print log.get_commit(18)
 
 log.print_log()
-"""
+print log.get_last_ip
+
