@@ -6,9 +6,9 @@ simulasi Raft Consensus yang kami buat dengan implementasi berbahasa Python. Car
 yaitu:
 
 > 1. Network yang dipakai pada setiap node harus sama
-> 2. Leader Node harus pertama kali dinyalakan, dengan command "python run.py <IP Leader>:<port Leader> <Port Node>"
-> 3. untuk membuat node lain, menggunakan command yang sama, namun port harus berbeda semua dengan yang ada
-> 4. Untuk menggunakan worker (menghitung bilangan prima ke-N), user dapat memasukkan bilangan N pada ...... dan akan ditampilkan hasilnya
+> 2. Untuk membuat node-node server, dapat dilakukan dengan command "python test_nodes.py <Jumlah Node>"
+> 3. Untuk menggunakan worker (menghitung bilangan prima ke-N), user harus menyalakan dahulu program worker pada setiap PC, dengan command "python3 worker.py"
+> 4. Lalu, user dapat memasukkan request dengan memasukkan di browser misalnya "http://192.168.42.81:8000/3" untuk bilangan prima ke-3 (tergantung server yang sedang menyala), dan akan ditampilkan hasilnya langsung
 
 Selamat mencoba! Semoga berhasil! :D
 
