@@ -84,7 +84,7 @@ def heart_beat():
                 if (add_log_success >= len(array_server) / 2 + 1) : 
                     #Commit to internal log
                     main_log.commit_ip_term(max_availability_address,term)
-                    main_log.print_log()
+                    #main_log.print_log()
                     #Commit log to follower
                     for addr in array_server:
                         if (addr != local_addr) :
@@ -364,7 +364,7 @@ def index(address, term, idx, last_address, last_term):
             main_log.add(address,term)
             return 'success'
         else:
-            print main_log.print_log()
+            #print main_log.print_log()
             print "Leader Log at idx=",idx-1,"  last_term=",last_term,"   last_address=",last_address
             print "Curren Log at idx=",idx-1,"  last_term=",main_log.get_log_term(idx - 1),"   last_address=",main_log.get_log_address(idx - 1)
             # thread.start_new_thread(recovery, () )
@@ -383,7 +383,7 @@ def index(address, term, idx):
     idx = int(idx)
     if (main_log.get_log_term(idx) == term and main_log.get_log_address(idx) == address):
         main_log.commit_ip_term(address,term)
-        main_log.print_log()
+        #main_log.print_log()
     return 'success'
 
 
