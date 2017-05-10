@@ -152,7 +152,7 @@ def print_log(log):
 
 def initialize():
     
-    if (len(sys.argv) != 3) :
+    if (len(sys.argv) < 3) :
         print "Plese use following command: Python loadBalancerAPI <current_leader_address> <your_port>"
         print "example python loadBalancerAPI.py 192.168.199.1:5000 4000"
         sys.exit()
@@ -175,7 +175,14 @@ def initialize():
         print_log("Initiate Leader")
         array_server.append(local_addr)
         thread.start_new_thread(heart_beat, () )
+    elif (len(sys.argv) == 4):
+        print_log("Server Hidup Kembali")
+        if (sys.argv[3] == 'restart'):
+            thread.start_new_thread(increment_time, () )
+            thread.start_new_thread(leader_election, () )
+            thread.start_new_thread(follower, () )
     else:
+        print_log("Start Follower")
         time.sleep(2)
         position = 2 # follower
         response = get_request('http://'+ leader_addr +'/api/join_system/'+local_addr)
@@ -360,14 +367,17 @@ def index(address, term, idx, last_address, last_term):
     global main_log
     idx = int(idx)
     if (idx != 0):
-        if (main_log.get_log_length() == idx and main_log.get_log_term(idx - 1) == last_term and main_log.get_log_address(idx - 1) == last_address):
-            main_log.add(address,term)
-            return 'success'
+        if (main_log.get_log_length() == idx):
+            if (main_log.get_log_term(idx - 1) == last_term and main_log.get_log_address(idx - 1) == last_address):
+                main_log.add(address,term)
+                return 'success'
+            else:
+                return 'failed'
         else:
             #print main_log.print_log()
-            print "Leader Log at idx=",idx-1,"  last_term=",last_term,"   last_address=",last_address
-            print "Curren Log at idx=",idx-1,"  last_term=",main_log.get_log_term(idx - 1),"   last_address=",main_log.get_log_address(idx - 1)
-            # thread.start_new_thread(recovery, () )
+            # print "Leader Log at idx=",idx-1,"  last_term=",last_term,"   last_address=",last_address
+            # print "Curren Log at idx=",idx-1,"  last_term=",main_log.get_log_term(idx - 1),"   last_address=",main_log.get_log_address(idx - 1)
+            thread.start_new_thread(recovery, () )
             return 'failed'
     else:
         main_log.add(address,term)
@@ -381,9 +391,10 @@ def index(address, term, idx):
     #print_log("Commit log address= "+address+"  term= " + term)
     global main_log
     idx = int(idx)
-    if (main_log.get_log_term(idx) == term and main_log.get_log_address(idx) == address):
-        main_log.commit_ip_term(address,term)
-        #main_log.print_log()
+    if (main_log.get_log_term(idx) == term):
+        if (main_log.get_log_address(idx) == address):
+            main_log.commit_ip_term(address,term)
+            #main_log.print_log()
     return 'success'
 
 
