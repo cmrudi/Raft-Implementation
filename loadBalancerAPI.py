@@ -22,6 +22,7 @@ election = False
 T = 40
 election_timeout = randint(T,2*T)
 hasVoted = False
+onRecovery = False
 
 #thread
 def heart_beat():
@@ -100,6 +101,7 @@ def heart_beat():
 def recovery():
     print_log('Start Recovery')
     global main_log
+    global onRecovery
     fit = False
     idx = 0;
     length = 2;
@@ -109,9 +111,12 @@ def recovery():
         term, address, length = (response.text).split("-")
         main_log.add(address,term)
         main_log.commit_ip_term(address,term)
+        main_log.print_log()
         idx = idx + 1;
         if (idx == length):
-            fit = true;
+            fit = True;
+            onRecovery = False;
+    print_log("Check out from log recovery loop")
                                                
 
 def increment_time():
@@ -369,6 +374,7 @@ def index(_term):
 def index(address, term, idx, last_address, last_term):
     #print_log("Push new log address= "+address+"  term= " + term)
     global main_log
+    global onRecovery
     idx = int(idx)
     if (idx != 0):
         if (main_log.get_log_length() == idx):
@@ -381,7 +387,9 @@ def index(address, term, idx, last_address, last_term):
             #print main_log.print_log()
             # print "Leader Log at idx=",idx-1,"  last_term=",last_term,"   last_address=",last_address
             # print "Curren Log at idx=",idx-1,"  last_term=",main_log.get_log_term(idx - 1),"   last_address=",main_log.get_log_address(idx - 1)
-            thread.start_new_thread(recovery, () )
+            if (onRecovery == False):
+                onRecovery = True;
+                thread.start_new_thread(recovery, () )
             return 'failed'
     else:
         main_log.add(address,term)
@@ -455,9 +463,10 @@ def index(address, req_term):
 @route('/api/get_log/:idx')
 def index(idx):
     global main_log
+    main_log.print_log()
     idx = int(idx)
     length = main_log.get_log_length()
-    return main_log.get_log_term(idx) + '-' + main_log.get_log_address(idx) + '-' + str(length)
+    return str(main_log.get_log_term(idx)) + '-' + str(main_log.get_log_address(idx)) + '-' + str(length)
 
 #Request N (number) by Client, routing to lowest CPU usage IP
 @route('/:prime_nth')
