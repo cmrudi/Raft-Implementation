@@ -46,6 +46,8 @@ def heart_beat():
             max_availability_address = local_addr
             for addr in array_server:
                 if (addr != local_addr) :
+                    url = 'http://'+addr+'/api/heart_beat/'+str(term);
+                    print "Get Request to ", url
                     response = get_request('http://'+addr+'/api/heart_beat/'+str(term))
                     if (max_availability_number < int(response.text)):  
                         max_availability_number = int(response.text)
@@ -99,15 +101,17 @@ def recovery():
     print_log('Start Recovery')
     global main_log
     fit = False
-    idx = main_log.get_log_length() - 1
-    while not fit and idx >= 0 :
+    idx = 0;
+    length = 2;
+    while not fit and idx < length :
         response = get_request('http://'+leader_addr+'/api/get_log/'+str(idx))
-        term, address = (response.text).split("-")
-        if (term == main_log.get_log_term(idx) and address == main_log.get_log_address(idx)):
-            fit = True
-        else:
-            idx = idx - 1
-            main_log.recovery(address,term,idx)
+        print_log(response);
+        term, address, length = (response.text).split("-")
+        main_log.add(address,term)
+        main_log.commit_ip_term(address,term)
+        idx = idx + 1;
+        if (idx == length):
+            fit = true;
                                                
 
 def increment_time():
@@ -452,7 +456,8 @@ def index(address, req_term):
 def index(idx):
     global main_log
     idx = int(idx)
-    return main_log.get_log_term(idx) + '-' + main_log.get_log_address(idx)
+    length = main_log.get_log_length()
+    return main_log.get_log_term(idx) + '-' + main_log.get_log_address(idx) + '-' + str(length)
 
 #Request N (number) by Client, routing to lowest CPU usage IP
 @route('/:prime_nth')
