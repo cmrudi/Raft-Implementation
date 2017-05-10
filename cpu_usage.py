@@ -19,7 +19,8 @@ while 1:
     time.sleep(5)
 
     # get cpu_usage percentage
-    avail_mem = str(psutil.virtual_memory().available*100/psutil.virtual_memory().total);
+    # avail_mem = str(psutil.virtual_memory().available*100/psutil.virtual_memory().total);
+    avail_mem = str(psutil.cpu_percent());
     print
     print
     print "Memory= "+avail_mem+ " %"
