@@ -61,7 +61,6 @@ def heart_beat():
             add_log_success = 1
             #Spread log to follower
 
-
             while (add_log_success < len(array_server) / 2 + 1 ):
                 time.sleep(2)
                 add_log_success = 1

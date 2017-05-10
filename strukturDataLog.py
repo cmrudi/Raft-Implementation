@@ -23,6 +23,12 @@ class Log:
 	# adding a number request
 		self.log_elem.append(Log_element(new_ip, term,False))
 
+	def replace_last_log(self,new_ip, term):
+		length = len(self.log_elem) -1;
+		self.log_elem[int(lenth)] = Log_element(new_ip, term, False)
+
+
+
 	def recovery(self, new_ip, term, idx):
 		self.log_elem[int(idx)] = Log_element(new_ip, term, True)
 
@@ -92,6 +98,8 @@ class Log:
 
 	def get_log_commit(self, idx):
 		return self.log_elem[idx].com
+
+
 
 
 
