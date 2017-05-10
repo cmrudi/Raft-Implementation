@@ -391,11 +391,15 @@ def index(address, term, idx):
     #print_log("Commit log address= "+address+"  term= " + term)
     global main_log
     idx = int(idx)
-    if (main_log.get_log_term(idx) == term):
-        if (main_log.get_log_address(idx) == address):
+    if (main_log.get_log_length() == idx):
+        if (main_log.get_log_term(idx) == term and main_log.get_log_address(idx) == address):
             main_log.commit_ip_term(address,term)
             #main_log.print_log()
-    return 'success'
+            return 'success'
+        else:
+            return 'failed';
+    else:
+        return 'failed';
 
 
 #API for catch new log from leader
